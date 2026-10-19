@@ -8,6 +8,10 @@ A small web app for rotating breakfast, lunch, and dinner menus and sending the 
 - Sunday is skipped, so no Saturday-night message is sent.
 - Morning leave suppresses breakfast and lunch; evening leave suppresses dinner; all-day leave suppresses everything.
 - The app keeps menu positions unchanged until a provider acceptance is verified.
+- Failed provider attempts are retried every 15 minutes from 10:30 PM through 5:00 AM; pending, unknown, and accepted attempts are not retried automatically.
+- The message title is `Menu for YYYY-MM-DD`, so a retry after midnight remains unambiguous.
+- Past leave records are retained with attribution, while upcoming leave is shown separately.
+- Breakfast, lunch, and dinner can each be disabled without deleting their rotation.
 - Provider credentials are read from environment variables, never from the browser UI.
 
 ## Run locally
@@ -26,6 +30,8 @@ Open http://127.0.0.1:3000.
 ## WhatsApp provider
 
 The app is wired to Green API's HTTPS API rather than the paid official WhatsApp Business API. Green API availability, free-plan limits, WhatsApp account state, and delivery are external dependencies. Keep `ENABLE_SENDING=false` until the instance is connected and a test message is confirmed.
+
+Green API returns provider acceptance, not proof that WhatsApp delivered the message or that the cook read it. The retry policy intentionally retries only confirmed failed requests to avoid duplicate late messages. A request that times out or has an unknown result is not retried automatically.
 
 ## Deployment notes
 

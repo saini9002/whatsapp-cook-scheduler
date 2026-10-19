@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { openStore, load, addLeave } from '../lib/db.mjs';
-import { createDispatcher } from '../lib/domain.mjs';
-import { SEEDS } from '../lib/menu.mjs';
+import { openStore, load, addLeave, setMealEnabled } from '../lib/db.mjs';
+import { createDispatcher, retryTargetDate, nextMessageDate } from '../lib/domain.mjs';
+import { SEEDS, makeMessage, preview } from '../lib/menu.mjs';
 
 function store() { return openStore(':memory:'); }
 const env = { ENABLE_SENDING: 'true' };
@@ -53,4 +53,49 @@ test('dispatching Sunday skips sending and does not advance indices', async () =
   assert.equal(result.skipped, true);
   assert.equal(calls, 0);
   assert.deepEqual(load(db).positions, { breakfast: 0, lunch: 0, dinner: 0 });
+});
+
+test('only failed assignments are retried; pending and unknown remain idempotent', async () => {
+  const db = store(); let calls = 0;
+  const dispatch = createDispatcher({ db, env, send: async () => { calls++; return { idMessage: 'retry-1' }; } });
+  await dispatch('2026-10-05');
+  db.prepare("UPDATE assignments SET status='pending' WHERE slot='breakfast'").run();
+  db.prepare("UPDATE assignments SET status='unknown' WHERE slot='lunch'").run();
+  db.prepare("UPDATE assignments SET status='failed' WHERE slot='dinner'").run();
+  await dispatch('2026-10-05');
+  assert.equal(calls, 2);
+  assert.equal(load(db).assignments.find(a=>a.slot==='breakfast').status, 'pending');
+  assert.equal(load(db).assignments.find(a=>a.slot==='lunch').status, 'unknown');
+  assert.equal(load(db).assignments.find(a=>a.slot==='dinner').status, 'sent');
+});
+
+test('disabled meals stay out of previews and persist without advancing', async () => {
+  const db = store(); setMealEnabled(db, 'breakfast', 0, false);
+  const loaded = load(db);
+  const p = preview({date:'2026-10-05', menus:loaded.menus, positions:loaded.positions, mealEnabled:loaded.mealEnabled});
+  assert.equal(p.meals.breakfast, SEEDS.breakfast[1]);
+  const dispatch = createDispatcher({db, env, send: async () => ({idMessage:'meal-1'})});
+  await dispatch('2026-10-05');
+  assert.equal(load(db).mealEnabled.breakfast[0], false);
+  assert.equal(load(db).positions.breakfast, 1);
+  assert.match(makeMessage(p), /^Menu for 2026-10-05/);
+});
+
+test('leave attribution is retained, including past leaves, and affects future preview', () => {
+  const db = store(); addLeave(db, {start:'2026-01-01', end:'2026-01-02', scope:'all', attribution:'household'});
+  const leave = load(db).leaves[0];
+  assert.equal(leave.attribution, 'household');
+  assert.equal(preview({date:'2026-01-01', menus:load(db).menus, positions:load(db).positions, leaves:load(db).leaves}).skipped, true);
+});
+
+test('retry date crosses midnight to the original menu date', () => {
+  assert.equal(retryTargetDate(new Date('2026-10-05T23:00:00+05:30')), '2026-10-06');
+  assert.equal(retryTargetDate(new Date('2026-10-06T04:45:00+05:30')), '2026-10-06');
+});
+
+test('next message date skips Sunday and full-day leave', () => {
+  const db = store();
+  addLeave(db, {start:'2026-10-06', end:'2026-10-06', scope:'all'});
+  assert.equal(nextMessageDate('2026-10-04', load(db)), '2026-10-05');
+  assert.equal(nextMessageDate('2026-10-06', load(db)), '2026-10-07');
 });
