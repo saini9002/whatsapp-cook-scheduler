@@ -26,9 +26,10 @@ test('leave present before dispatch suppresses only its slots and advances only 
   const dispatch = createDispatcher({ db, env, send: async m => { message = m; return { idMessage: 'm-2' }; } });
   const result = await dispatch('2026-10-06');
   assert.equal(result.meals.breakfast, null);
-  assert.match(message, /Lunch:/);
   assert.doesNotMatch(message, /Breakfast:/);
-  assert.deepEqual(load(db).positions, { breakfast: 0, lunch: 1, dinner: 1 });
+  assert.doesNotMatch(message, /Lunch:/);
+  assert.match(message, /Dinner:/);
+  assert.deepEqual(load(db).positions, { breakfast: 0, lunch: 0, dinner: 1 });
 });
 
 test('leave added after send restores only affected slot rotation for future menus', async () => {
@@ -37,10 +38,10 @@ test('leave added after send restores only affected slot rotation for future men
   await dispatch('2026-10-07');
   assert.deepEqual(load(db).positions, { breakfast: 1, lunch: 1, dinner: 1 });
   addLeave(db, { start: '2026-10-07', end: '2026-10-07', scope: 'morning' }, new Date(Date.now() + 1000));
-  assert.deepEqual(load(db).positions, { breakfast: 0, lunch: 1, dinner: 1 });
+  assert.deepEqual(load(db).positions, { breakfast: 0, lunch: 0, dinner: 1 });
   const next = await dispatch('2026-10-08');
   assert.equal(next.meals.breakfast, SEEDS.breakfast[0]);
-  assert.equal(next.meals.lunch, SEEDS.lunch[1]);
+  assert.equal(next.meals.lunch, SEEDS.lunch[0]);
   assert.equal(next.meals.dinner, SEEDS.dinner[1]);
 });
 
