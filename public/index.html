@@ -30,7 +30,7 @@
         <section id="dashboard" class="page-section active-section">
           <div class="page-heading"><div><p class="eyebrow">Wednesday, your plan at a glance</p><h1>Good morning, <em>home chef.</em></h1><p class="muted">Plan today, preview tomorrow, and let the routine do the remembering.</p></div><div id="demoBadge" class="demo-badge">● Demo mode</div></div>
           <div class="hero-grid">
-            <article class="card tomorrow-card"><div class="card-kicker">TOMORROW’S MENU <span id="previewDate"></span></div><div class="tomorrow-meals" id="tomorrowMeals"><div class="skeleton"></div></div><div class="message-preview" id="messagePreview">Loading your message preview…</div><div class="preview-footer"><span id="previewStatus" class="status-dot">Scheduled preview</span><button class="text-button" id="changePreviewBtn">Preview another day →</button></div></article>
+            <article class="card tomorrow-card"><div class="card-kicker">MENU PREVIEW <span id="previewDate"></span></div><div class="tomorrow-meals" id="tomorrowMeals"><div class="skeleton"></div></div><div class="message-preview" id="messagePreview">Loading your message preview…</div><div class="preview-footer"><span id="previewStatus" class="status-dot">Scheduled preview</span><button class="text-button" id="changePreviewBtn">Preview another day →</button></div></article>
             <article class="card schedule-card"><div class="card-kicker">AUTOMATION</div><div class="schedule-icon">◌</div><h2 id="scheduleTitle">Next message</h2><p class="muted" id="scheduleCopy">Loading schedule…</p><div class="schedule-rule"><span></span><span></span><span></span></div><p class="tiny muted">The app attempts delivery at 10:30 PM and retries only failed attempts every 15 minutes until 5:00 AM.</p></article>
           </div>
         </section>
@@ -45,6 +45,7 @@
       </div>
     </main>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="previewModal" class="modal-backdrop" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle"><button id="previewModalClose" class="modal-close" type="button" aria-label="Close">×</button><h2 id="previewModalTitle">Preview a menu date</h2><p class="muted">Choose a date to see the exact menu message.</p><form id="previewModalForm"><label for="previewDateInput">Menu date<input id="previewDateInput" type="date" required></label><p id="previewModalError" class="modal-error" role="alert"></p><div class="modal-actions"><button id="previewModalCancel" class="button secondary" type="button">Cancel</button><button class="button primary" type="submit">Show preview</button></div></form></section></div>
   </div>
   <script src="/app.js"></script>
 </body>
