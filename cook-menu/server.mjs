@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openStore, load, saveMenus, addLeave, removeLeave, setMealEnabled } from './lib/db.mjs';
+import { openStore, load, saveMenus, addLeave, removeLeave, setMealEnabled, setMealSettings } from './lib/db.mjs';
 import { state, createDispatcher, isRetryWindow, retryTargetDate } from './lib/domain.mjs';
 import { normalizeMenus, validDate, preview, addDays, indiaToday } from './lib/menu.mjs';
 import { checkConnection, configured, greenConfig, providerRequest } from './lib/green.mjs';
@@ -22,7 +22,7 @@ let timer=null;if(String(env.ENABLE_SENDING).toLowerCase()==='true'){timer=setIn
 const server=http.createServer(async(req,res)=>{try{if(!auth(req,res)||!csrf(req,res))return;const u=new URL(req.url,`http://${req.headers.host}`);if(req.method==='GET'&&u.pathname==='/api/state')return json(res,200,publicState());
  if(req.method==='POST'&&u.pathname==='/api/connection')return json(res,200,await checkConnection(env));
  if(req.method==='POST'&&u.pathname==='/api/preview'){const b=await body(req);if(!validDate(b.date))return json(res,400,{error:'valid date required'});const d=load(db);return json(res,200,{...preview({date:b.date,menus:d.menus,mealEnabled:d.mealEnabled,positions:d.positions,leaves:d.leaves}),message:preview({date:b.date,menus:d.menus,mealEnabled:d.mealEnabled,positions:d.positions,leaves:d.leaves}).message});}
- if(req.method==='PUT'&&u.pathname==='/api/menus'){const m=normalizeMenus(await body(req));const d=load(db);if(d.assignments.some(a=>['intent','queued','unknown'].includes(a.status)))return json(res,409,{error:'menu edit blocked while assignments are outstanding'});saveMenus(db,m);return json(res,200,publicState());}
+ if(req.method==='PUT'&&u.pathname==='/api/menus'){const request=await body(req),m=normalizeMenus(request);const d=load(db);if(d.assignments.some(a=>['intent','queued','unknown'].includes(a.status)))return json(res,409,{error:'menu edit blocked while assignments are outstanding'});saveMenus(db,m);if(request.mealEnabled)setMealSettings(db,request.mealEnabled);return json(res,200,publicState());}
  if(req.method==='PUT'&&u.pathname==='/api/meals'){const b=await body(req);if(!['breakfast','lunch','dinner'].includes(b.slot)||!Number.isInteger(b.position)||typeof b.enabled!=='boolean')return json(res,400,{error:'invalid meal'});setMealEnabled(db,b.slot,b.position,b.enabled);return json(res,200,publicState());}
  if(req.method==='POST'&&u.pathname==='/api/leaves'){const b=await body(req);if(!validDate(b.start)||!validDate(b.end)||b.start>b.end||!['all','morning','evening'].includes(b.scope)||!['cook','household','user'].includes(b.attribution||'cook'))return json(res,400,{error:'invalid leave'});if(b.start<indiaToday())return json(res,409,{error:'cannot alter a cooked past date'});const d=load(db);if(d.leaves.some(x=>x.start===b.start&&x.end===b.end&&x.scope===b.scope&&x.reason===(b.reason||'')&&x.attribution===(b.attribution||'cook')))return json(res,200,publicState());addLeave(db,{start:b.start,end:b.end,scope:b.scope,reason:String(b.reason||'').slice(0,200),attribution:b.attribution||'cook'});return json(res,201,publicState());}
  if(req.method==='DELETE'&&u.pathname.startsWith('/api/leaves/')){const ok=removeLeave(db,u.pathname.split('/').pop());return ok?json(res,200,publicState()):json(res,404,{error:'leave not found'});}

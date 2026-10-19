@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { openStore, load, addLeave, setMealEnabled } from '../lib/db.mjs';
+import { openStore, load, addLeave, setMealEnabled, setMealSettings } from '../lib/db.mjs';
 import { createDispatcher, retryTargetDate, nextMessageDate } from '../lib/domain.mjs';
 import { SEEDS, makeMessage, preview } from '../lib/menu.mjs';
 
@@ -79,6 +79,11 @@ test('disabled meals stay out of previews and persist without advancing', async 
   assert.equal(load(db).mealEnabled.breakfast[0], false);
   assert.equal(load(db).positions.breakfast, 1);
   assert.match(makeMessage(p), /^Menu for 2026-10-05/);
+});
+
+test('meal settings can be saved together with the menu', () => {
+  const db = store(); setMealSettings(db, {breakfast: new Array(20).fill(false)});
+  assert.equal(load(db).mealEnabled.breakfast.every(v => v === false), true);
 });
 
 test('leave attribution is retained, including past leaves, and affects future preview', () => {
