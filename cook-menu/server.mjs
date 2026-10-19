@@ -4,6 +4,7 @@ import { resolve, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openStore, load, saveMenus, addLeave, removeLeave, setMealEnabled, setMealSettings, setMealActive } from './lib/db.mjs';
 import { state, createDispatcher, isRetryWindow, retryTargetDate } from './lib/domain.mjs';
+import { sendAlert } from './lib/email.mjs';
 import { normalizeMenus, validDate, preview, addDays, indiaToday } from './lib/menu.mjs';
 import { checkConnection, configured, greenConfig, providerRequest } from './lib/green.mjs';
 
@@ -17,7 +18,7 @@ function csrf(req,res){if(req.method==='GET')return true;const origin=req.header
 function json(res,status,obj){const b=JSON.stringify(obj);res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'});res.end(b);}
 async function body(req){let s='';for await(const c of req){s+=c;if(s.length>100000)throw Object.assign(new Error('body too large'),{status:413});}try{return JSON.parse(s||'{}')}catch{throw Object.assign(new Error('invalid JSON'),{status:400});}}
 function publicState(){return state(db,new Date(),env);}
-const dispatch=createDispatcher({db,env,send:async message=>{if(String(env.ENABLE_SENDING).toLowerCase()!=='true')throw new Error('sending disabled');const c=greenConfig(env);return providerRequest(env,'sendMessage',{method:'POST',body:JSON.stringify({chatId:`${c.phone}@c.us`,message})});}});
+const dispatch=createDispatcher({db,env,send:async message=>{if(String(env.ENABLE_SENDING).toLowerCase()!=='true')throw new Error('sending disabled');const c=greenConfig(env);return providerRequest(env,'sendMessage',{method:'POST',body:JSON.stringify({chatId:`${c.phone}@c.us`,message})});},notify:async({date,message,error})=>sendAlert(env,{subject:`KitchenMate needs attention for ${date}`,text:`KitchenMate could not send this menu and will not retry automatically.\n\nDate: ${date}\n\n${message}\n\nFailure: ${error.message}\n\nCheck your Green API credentials, instance state, and cook phone number.`})});
 let timer=null;if(String(env.ENABLE_SENDING).toLowerCase()==='true'){timer=setInterval(()=>{const now=new Date();const local=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',minute:'2-digit',hour12:false}).formatToParts(now);const minute=Number(local.find(x=>x.type==='minute').value);if(isRetryWindow(now)&&minute%15===0)dispatch(retryTargetDate(now)).catch(()=>{});},60000);timer.unref();}
 const server=http.createServer(async(req,res)=>{try{if(!auth(req,res)||!csrf(req,res))return;const u=new URL(req.url,`http://${req.headers.host}`);if(req.method==='GET'&&u.pathname==='/api/state')return json(res,200,publicState());
  if(req.method==='POST'&&u.pathname==='/api/connection')return json(res,200,await checkConnection(env));

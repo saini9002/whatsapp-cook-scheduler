@@ -3,7 +3,7 @@
   const state = { data: null };
   const $ = (s, root = document) => root.querySelector(s);
   const escDate = v => v ? new Date(`${v}T00:00:00`).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}) : '—';
-  const formatMessage = p => { const raw=String(p?.message||'No menu will be sent for this date.').replace(/^Tomorrow's menu\s*\(\d{4}-\d\d-\d\d\)\s*/i,'').replace(/^Menu for\s+\d{4}-\d\d-\d\d\s*/i,''); return `${p?.date ? `Menu for ${escDate(p.date)}\n` : ''}${raw}`; };
+  const formatMessage = p => { const raw=String(p?.message||'No menu will be sent for this date.').replace(/^\*?Tomorrow's menu\s*\(\d{4}-\d\d-\d\d\)\*?\s*/i,'').replace(/^\*?Menu for\s+\d{4}-\d\d-\d\d\*?\s*/i,''); return `${p?.date ? `Menu for ${escDate(p.date)}\n` : ''}${raw}`; };
   const toast = msg => { const el=$('#toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3200); };
   const error = msg => { const el=$('#globalError'); el.textContent=msg; el.hidden=!msg; };
   async function api(url, options={}) { const res=await fetch(url,{headers:{'Content-Type':'application/json',...(options.headers||{})},...options}); let body={}; try{body=await res.json()}catch{} if(!res.ok) throw new Error(body.error||`Request failed (${res.status})`); return body; }

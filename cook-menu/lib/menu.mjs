@@ -21,4 +21,4 @@ export function preview({date, menus, positions, leaves=[], mealEnabled={}, enab
  if(!skipped && SLOTS.every(s=>meals[s]===null)) skipped=true;
  return {date,meals,message: skipped ? `No menu sent (${reason||'all meals suppressed'})` : SLOTS.filter(s=>meals[s]!==null).map(s=>`${s[0].toUpperCase()+s.slice(1)}: ${meals[s]}`).join('\n'),skipped,reason};
 }
-export function makeMessage(p) { return `Menu for ${p.date}\n${p.message}`; }
+export function makeMessage(p) { return `*Menu for ${p.date}*\n${p.message}`; }

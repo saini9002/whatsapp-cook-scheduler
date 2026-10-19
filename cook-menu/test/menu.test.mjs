@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {preview,SEEDS,addDays,validDate} from '../lib/menu.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {preview,SEEDS,addDays,validDate,makeMessage} from '../lib/menu.mjs';
 const menus=SEEDS, positions={breakfast:0,lunch:0,dinner:0};
 test('seeds have twenty independent rotations',()=>{for(const x of Object.values(SEEDS))assert.equal(x.length,20);});
 test('Sunday skips without advancing',()=>{const p=preview({date:'2026-10-04',menus,positions,leaves:[]});assert.equal(p.skipped,true);assert.equal(p.reason,'Sunday');});
@@ -7,3 +7,4 @@ test('morning leave suppresses the morning cook visit',()=>{const p=preview({dat
 test('morning leave covers breakfast and lunch while evening leave covers dinner',()=>{const morning=preview({date:'2026-10-05',menus,positions,leaves:[{start:'2026-10-05',end:'2026-10-05',scope:'morning'}]});assert.equal(morning.meals.breakfast,null);assert.equal(morning.meals.lunch,null);assert.ok(morning.meals.dinner);const evening=preview({date:'2026-10-05',menus,positions,leaves:[{start:'2026-10-05',end:'2026-10-05',scope:'evening'}]});assert.ok(evening.meals.breakfast);assert.ok(evening.meals.lunch);assert.equal(evening.meals.dinner,null);});
 test('date validation rejects normalized calendar dates',()=>{assert.equal(validDate('2026-02-28'),true);assert.equal(validDate('2026-02-29'),false);assert.equal(validDate('2026-04-31'),false);});
 test('date arithmetic',()=>assert.equal(addDays('2026-10-03',1),'2026-10-04'));
+test('WhatsApp message bolds the menu title',()=>assert.match(makeMessage({date:'2026-10-21',message:'Breakfast: Poha'}),/^\*Menu for 2026-10-21\*\n/));

@@ -33,6 +33,8 @@ The app is wired to Green API's HTTPS API rather than the paid official WhatsApp
 
 Green API returns provider acceptance, not proof that WhatsApp delivered the message or that the cook read it. The retry policy intentionally retries only confirmed failed requests to avoid duplicate late messages. A request that times out or has an unknown result is not retried automatically.
 
+Permanent provider failures, such as invalid credentials or an invalid phone number, are marked as needing attention and are not retried. If `RESEND_API_KEY`, `ALERT_FROM`, and `ALERT_TO` are configured, KitchenMate sends an email alert through Resend. Resend's free transactional plan is suitable for occasional alerts; check its current limits before deployment.
+
 ## Deployment notes
 
 Use a cloud host that supports a persistent disk and a continuously running Node process. The SQLite database must be stored on persistent storage, and the process must remain online at 10:30 PM Asia/Kolkata. Set `APP_PASSWORD` whenever the app is exposed beyond localhost.

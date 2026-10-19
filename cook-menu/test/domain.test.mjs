@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { openStore, load, addLeave, setMealEnabled, setMealSettings, setMealActive } from '../lib/db.mjs';
-import { createDispatcher, retryTargetDate, nextMessageDate } from '../lib/domain.mjs';
+import { createDispatcher, retryTargetDate, nextMessageDate, isPermanentSendFailure } from '../lib/domain.mjs';
 import { SEEDS, makeMessage, preview } from '../lib/menu.mjs';
 
 function store() { return openStore(':memory:'); }
@@ -78,7 +78,7 @@ test('disabled meals stay out of previews and persist without advancing', async 
   await dispatch('2026-10-05');
   assert.equal(load(db).mealEnabled.breakfast[0], false);
   assert.equal(load(db).positions.breakfast, 1);
-  assert.match(makeMessage(p), /^Menu for 2026-10-05/);
+  assert.match(makeMessage(p), /^\*Menu for 2026-10-05\*/);
 });
 
 test('meal settings can be saved together with the menu', () => {
@@ -110,4 +110,11 @@ test('next message date skips Sunday and full-day leave', () => {
   addLeave(db, {start:'2026-10-06', end:'2026-10-06', scope:'all'});
   assert.equal(nextMessageDate('2026-10-04', load(db)), '2026-10-05');
   assert.equal(nextMessageDate('2026-10-06', load(db)), '2026-10-07');
+});
+
+test('permanent provider errors need attention and are not retried', async () => {
+  const db = store(); let calls=0; let alert;
+  const dispatch=createDispatcher({db,env,send:async()=>{calls++;const e=new Error('bad token');e.status=401;throw e;},notify:async x=>{alert=x;}});
+  await dispatch('2026-10-05'); await dispatch('2026-10-05');
+  assert.equal(calls,1); assert.equal(load(db).assignments.every(a=>a.status==='attention'),true); assert.equal(alert.date,'2026-10-05'); assert.equal(isPermanentSendFailure({status:401}),true); assert.equal(isPermanentSendFailure({status:503}),false);
 });
