@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Cook menu and leave planner">
-  <title>Thali — Cook menu planner</title>
+  <title>KitchenMate — Cook menu planner</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="#dashboard" aria-label="Thali home"><span class="brand-mark">✦</span><span>thali</span></a>
+      <a class="brand" href="#dashboard" aria-label="KitchenMate home"><span class="brand-mark">✦</span><span>KitchenMate</span></a>
       <div class="topbar-right"><span id="connectionPill" class="status-pill status-neutral">Checking connection…</span><button class="icon-button" id="refreshBtn" title="Refresh data" aria-label="Refresh data">↻</button></div>
     </header>
     <div id="globalError" class="global-error" role="alert" hidden></div>
@@ -41,7 +41,7 @@
 
         <section id="history" class="page-section"><div class="page-heading"><div><p class="eyebrow">A quiet paper trail</p><h1>Message <em>history</em></h1><p class="muted">See what was attempted and what your provider reported.</p></div></div><div class="card history-card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Menu message</th><th>Status</th><th>Created</th></tr></thead><tbody id="historyBody"></tbody></table></div></div><div class="notice"><b>About delivery</b><span>Retries happen only after a failed provider request. Green API confirms acceptance, but this app cannot independently confirm that WhatsApp delivered or that the cook read the message.</span></div></section>
 
-        <section id="setup" class="page-section"><div class="page-heading"><div><p class="eyebrow">One-time configuration</p><h1>Set up <em>Thali</em></h1><p class="muted">No credentials are entered here. Your environment keeps them safely on the server.</p></div></div><div class="setup-grid"><div class="card setup-card"><div class="setup-status"><span class="status-dot offline"></span><div><strong id="setupStatus">Provider not configured</strong><p id="setupStatusCopy">Sending is safely disabled until setup is complete.</p></div></div><h2>Server environment</h2><ul class="env-list"><li><code>GREEN_API_URL</code><span>Provider endpoint</span></li><li><code>GREEN_API_INSTANCE_ID</code><span>Instance identifier</span></li><li><code>GREEN_API_TOKEN</code><span>Private token</span></li><li><code>COOK_PHONE</code><span>Cook’s WhatsApp number</span></li><li><code>APP_PASSWORD</code><span>App access password</span></li><li><code>ENABLE_SENDING</code><span>Explicit sending toggle</span></li></ul><button class="button secondary" id="checkConnectionBtn">Check provider connection</button></div><div class="card explainer"><span class="big-leaf">✿</span><h2>How it works</h2><ol><li>Menus rotate independently for each meal.</li><li>At <strong>22:30 Asia/Kolkata</strong>, tomorrow’s plan is queued (except Saturday).</li><li>Your cook visits in the morning and evening, based on your plan.</li></ol><p class="tiny muted">Green API’s free plan allows 3 chats per instance. Reliability depends on the provider and WhatsApp; this app does not promise delivery.</p></div></div></section>
+        <section id="setup" class="page-section"><div class="page-heading"><div><p class="eyebrow">One-time configuration</p><h1>Set up <em>KitchenMate</em></h1><p class="muted">No credentials are entered here. Your environment keeps them safely on the server.</p></div></div><div class="setup-grid"><div class="card setup-card"><div class="setup-status"><span class="status-dot offline"></span><div><strong id="setupStatus">Provider not configured</strong><p id="setupStatusCopy">Sending is safely disabled until setup is complete.</p></div></div><h2>Server environment</h2><ul class="env-list"><li><code>GREEN_API_URL</code><span>Provider endpoint</span></li><li><code>GREEN_API_INSTANCE_ID</code><span>Instance identifier</span></li><li><code>GREEN_API_TOKEN</code><span>Private token</span></li><li><code>COOK_PHONE</code><span>Cook’s WhatsApp number</span></li><li><code>APP_PASSWORD</code><span>App access password</span></li><li><code>ENABLE_SENDING</code><span>Explicit sending toggle</span></li></ul><button class="button secondary" id="checkConnectionBtn">Check provider connection</button></div><div class="card explainer"><span class="big-leaf">✿</span><h2>How it works</h2><ol><li>Menus rotate independently for each meal.</li><li>At <strong>22:30 Asia/Kolkata</strong>, tomorrow’s plan is queued (except Saturday).</li><li>Your cook visits in the morning and evening, based on your plan.</li></ol><p class="tiny muted">Green API’s free plan allows 3 chats per instance. Reliability depends on the provider and WhatsApp; this app does not promise delivery.</p></div></div></section>
       </div>
     </main>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
